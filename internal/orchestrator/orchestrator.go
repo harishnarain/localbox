@@ -54,6 +54,12 @@ func New(d drivers.Driver) *Orchestrator {
 	return &Orchestrator{driver: d}
 }
 
+// Driver returns the drivers.Driver this Orchestrator wraps, e.g. so a
+// caller can report its Name/BootBudget without booting a sandbox.
+func (o *Orchestrator) Driver() drivers.Driver {
+	return o.driver
+}
+
 // NewForCurrentPlatform selects the appropriate driver for the current
 // host (via Select) and returns an Orchestrator wrapping it.
 func NewForCurrentPlatform() (*Orchestrator, error) {
