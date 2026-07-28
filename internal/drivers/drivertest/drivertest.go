@@ -1,7 +1,7 @@
 // Package drivertest provides shared test helpers for asserting that a
 // platform driver's skeleton implementation matches the shared
 // internal/drivers.Driver/Sandbox contract. Used by each platform
-// package's own _test.go (macos, linux, windows) so the parity assertion
+// package's own _test.go (macos, linux) so the parity assertion
 // logic isn't triplicated and can't silently drift between platforms.
 package drivertest
 

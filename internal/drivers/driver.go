@@ -1,5 +1,6 @@
 // Package drivers defines the shared contract every LocalBox platform
-// driver (macOS, Linux, Windows — see internal/drivers/{macos,linux,windows})
+// driver (macOS, Linux — see internal/drivers/{macos,linux}; Windows runs
+// the Linux driver inside WSL2 rather than a separate driver)
 // implements. It contains no platform-specific code: it exists so the
 // planned orchestrator (internal/orchestrator, not yet created) can select
 // and drive any platform's sandbox without knowing which one it's talking
@@ -22,7 +23,7 @@ var ErrNotImplemented = errors.New("drivers: not yet implemented")
 // (Virtualization.framework, LXC/Incus, WSL2, ...).
 type Driver interface {
 	// Name returns the platform name this driver implements, e.g.
-	// "macos", "linux", "windows".
+	// "macos", "linux".
 	Name() string
 
 	// BootBudget returns this platform's target boot-time budget, per

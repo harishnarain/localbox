@@ -6,7 +6,7 @@ argument-hint: <platform-name>
 Scaffold a new sandbox driver for platform `$ARGUMENTS` under
 `internal/drivers/$ARGUMENTS/`.
 
-1. Read the existing drivers under `internal/drivers/{macos,linux,windows}/`
+1. Read the existing drivers under `internal/drivers/{macos,linux}/`
    to find the shared interface they implement (if it doesn't exist yet as
    an extracted interface, look at how the orchestrator expects to call into
    a driver, and infer the contract from there).

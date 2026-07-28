@@ -32,14 +32,18 @@ isolation primitive on your OS:
 |---|---|---|---|
 | macOS (Apple Silicon) | `Virtualization.framework` | < 500 ms | Hardware-accelerated ARM64 Linux microVM |
 | Linux | LXC/Incus or rootless Podman | < 100 ms | cgroups v2, user namespaces, seccomp |
-| Windows 11 | WSL2 utility VM / Hyper-V isolated runtime | < 1.5 s | Lightweight Hyper-V-virtualized Linux container |
+
+Windows 11 support runs the same Linux driver inside WSL2 — WSL2 is a real
+Linux VM, so a sandbox on Windows is a Linux container one layer deeper
+(cgroups v2, user namespaces, seccomp), not a separate Hyper-V/utility-VM
+driver, and shares the Linux driver's < 100 ms boot budget.
 
 Key mechanisms:
 
-- **Copy-on-write workspace snapshots** — APFS snapshots (macOS), Btrfs/ZFS
-  snapshots (Linux), or virtual disk overlays (Windows) fork your working
-  directory instantly. Git diffs produced inside the sandbox are extracted
-  and applied back to your real repo.
+- **Copy-on-write workspace snapshots** — APFS snapshots (macOS) or
+  Btrfs/ZFS snapshots (Linux, including inside WSL2 on Windows) fork your
+  working directory instantly. Git diffs produced inside the sandbox are
+  extracted and applied back to your real repo.
 - **Zero-trust credential proxy** — a host-side loopback proxy intercepts
   outbound requests from the sandbox. Real API keys (Anthropic, OpenAI,
   GitHub, …) never leave the host; the sandbox gets scoped dummy tokens
@@ -78,8 +82,10 @@ Principle 6.
 
 - **Phase 1 (MVP)** — macOS driver (Virtualization.framework), Linux driver
   (LXC/Podman), basic CLI, initial credential proxy.
-- **Phase 2** — Windows (WSL2) driver, VS Code Remote-SSH / JetBrains
-  integration, Pro remote-offload over WireGuard/Tailscale.
+- **Phase 2** — Verify/adapt the Linux driver running inside WSL2
+  (network/proxy interop, snapshot filesystem support) for Windows 11, VS
+  Code Remote-SSH / JetBrains integration, Pro remote-offload over
+  WireGuard/Tailscale.
 - **Phase 3** — Enterprise policy dashboard + SSO, partnerships with agent
   frameworks (Claude Code extensions, LangChain, AutoGen).
 

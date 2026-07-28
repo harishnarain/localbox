@@ -45,11 +45,15 @@ round trip is not acceptable, no matter how convenient.
 
 ### 4. Cross-platform parity is a requirement, not a nice-to-have
 
-LocalBox ships drivers for macOS (Virtualization.framework), Linux
-(LXC/Incus), and Windows (WSL2) behind one orchestration interface. A feature
-isn't "done" when it works on one platform — it's done when it works on all
-three, or parity is explicitly deferred with a tracked issue and a documented
-reason. See the `platform-driver` agent and `driver-parity-check` skill.
+LocalBox ships drivers for macOS (Virtualization.framework) and Linux
+(LXC/Incus) behind one orchestration interface. Windows support runs the
+Linux driver inside WSL2 rather than a third native driver — WSL2 is a
+real Linux kernel, so a sandbox "on Windows" is a Linux container one
+layer deeper, not a distinct isolation primitive to maintain at parity. A
+feature isn't "done" when it works on one platform — it's done when it
+works on both drivers (and, transitively, on Windows via WSL2), or parity
+is explicitly deferred with a tracked issue and a documented reason. See
+the `platform-driver` agent and `driver-parity-check` skill.
 
 ### 5. Performance budgets are product requirements
 
@@ -57,7 +61,10 @@ reason. See the `platform-driver` agent and `driver-parity-check` skill.
 |-------------------------|------------|
 | macOS (Apple Silicon)   | < 500 ms   |
 | Linux                   | < 100 ms   |
-| Windows (WSL2)          | < 1.5 s    |
+
+Windows (via WSL2) uses the Linux driver directly and shares its < 100 ms
+budget — WSL2 runs a real Linux kernel, so there is no separate native
+primitive to budget for.
 
 A change that regresses these numbers needs an explicit justification in the
 PR description, not a silent trade-off. Use `/bench` before merging anything
@@ -103,7 +110,8 @@ docs/spec-driven-development.md — the specify → plan → tasks → implement
 .claude/settings.json — shared permission allowlist
 .github/ISSUE_TEMPLATE/spec.yml — issue form backing the spec workflow
 cmd/localbox/         — CLI entrypoint (stub)
-internal/drivers/{macos,linux,windows}/ — platform drivers (stubs, one package per OS)
+internal/drivers/{macos,linux}/ — platform drivers (macOS, Linux; Windows
+                          uses the Linux driver directly, via WSL2)
 internal/proxy/       — credential proxy (stub)
 internal/snapshot/    — CoW workspace snapshotting (stub)
 Makefile
