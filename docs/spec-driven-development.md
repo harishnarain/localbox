@@ -70,21 +70,32 @@ Produced by [`.github/ISSUE_TEMPLATE/spec.yml`](../.github/ISSUE_TEMPLATE/spec.y
 between headings → write back), so earlier sections are never disturbed by
 later stages.
 
-## Wiring up a GitHub Project board (optional, recommended)
+## GitHub Project board
 
-Labels and checklists work standalone, but a
+Labels and checklists work standalone, but the
+[**LocalBox Specs**](https://github.com/users/harishnarain/projects/2)
 [Projects v2](https://docs.github.com/en/issues/planning-and-tracking-with-projects)
-board gives a kanban view of every spec's stage. One-time setup, by a
-maintainer, via the GitHub UI or `gh project`:
+board gives a kanban view of every spec's stage. Set up so far, scripted via
+`gh project`:
 
-1. Create a project: `gh project create --owner harishnarain --title "LocalBox Specs"`.
-2. Add a single-select field named **Stage** with options matching the
-   labels above (Draft / Planned / Tasked / In Progress / Done / Blocked).
-3. Add a workflow (Project settings → Workflows) that sets **Stage** from
-   the issue's `spec:*` label, and one that sets it to Done when the issue
-   closes.
-4. Auto-add filter: `label:spec`, so every spec issue lands on the board
+- Project created and linked to this repo (`gh project link`), so spec
+  issues can be added to it.
+- A single-select **Stage** field with options matching the label taxonomy
+  above (Draft / Planned / Tasked / In Progress / Done / Blocked).
+
+GitHub doesn't expose Project workflow-automation rules through the API or
+`gh` — these two steps are UI-only and still need to be done by a
+maintainer, once, in the project's **Settings → Workflows**:
+
+1. **Auto-add**: filter `label:spec`, so every spec issue lands on the board
    without a manual step.
+2. **Item added / label sync**: a workflow that sets **Stage** from the
+   issue's `spec:*` label (six rules, one per label), and one that sets
+   **Stage** to Done when the issue closes.
+
+Until those are configured, `spec-manager` labeling an issue won't move its
+card — the label (source of truth) and the board (visualization) work
+independently either way.
 
 This is one-time repo configuration, not something the harness scripts —
 it's a project setting, not per-spec work, and isn't required for the
