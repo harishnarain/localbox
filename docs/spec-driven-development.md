@@ -83,19 +83,20 @@ board gives a kanban view of every spec's stage. Set up so far, scripted via
 - A single-select **Stage** field with options matching the label taxonomy
   above (Draft / Planned / Tasked / In Progress / Done / Blocked).
 
-GitHub doesn't expose Project workflow-automation rules through the API or
-`gh` — these two steps are UI-only and still need to be done by a
-maintainer, once, in the project's **Settings → Workflows**:
+GitHub's built-in Project workflows turned out not to cover the rest:
+there's no "on label change" trigger at all, and `Item closed` (the one
+trigger that's close) only offers the default **Status** field, not a
+custom one like **Stage** — confirmed in the UI, not assumed. So:
 
-1. **Auto-add**: filter `label:spec`, so every spec issue lands on the board
-   without a manual step.
-2. **Item added / label sync**: a workflow that sets **Stage** from the
-   issue's `spec:*` label (six rules, one per label), and one that sets
-   **Stage** to Done when the issue closes.
-
-Until those are configured, `spec-manager` labeling an issue won't move its
-card — the label (source of truth) and the board (visualization) work
-independently either way.
+- **Auto-add**: filter `label:spec` — configured, in the project's
+  **Settings → Workflows**. Every spec issue lands on the board
+  automatically.
+- **Stage sync** (label → Stage field, and closed → Stage=Done): no native
+  automation exists for this, so `spec-manager` does it directly — see
+  "Keeping the Project board in sync" in `.claude/agents/spec-manager.md`.
+  It updates the card's Stage field via `gh project item-edit` in the same
+  step it changes the issue's `spec:*` label, so the board never disagrees
+  with the label (the actual source of truth).
 
 This is one-time repo configuration, not something the harness scripts —
 it's a project setting, not per-spec work, and isn't required for the

@@ -19,7 +19,10 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr list:*)",
       "Bash(gh run view:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(gh project view:*)",
+      "Bash(gh project item-list:*)",
+      "Bash(gh project field-list:*)"
     ]
   }
 }
