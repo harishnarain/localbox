@@ -3,12 +3,14 @@ package proxy
 import (
 	"context"
 	"crypto/hmac"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"time"
 )
@@ -182,6 +184,10 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	upstreamReq, err := buildUpstreamRequest(r, svc.UpstreamBaseURL, rest, header, secret)
 	if err != nil {
+		if errors.Is(err, errPathEscapesScope) {
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
 		http.Error(w, "bad gateway", http.StatusBadGateway)
 		return
 	}
@@ -216,6 +222,11 @@ func constantTimeEqual(a, b string) bool {
 	return hmac.Equal([]byte(a), []byte(b))
 }
 
+// errPathEscapesScope is returned by buildUpstreamRequest when the
+// forwarded path, after cleaning, would fall outside UpstreamBaseURL's
+// path prefix (e.g. via ".." segments in the incoming request path).
+var errPathEscapesScope = errors.New("proxy: request path escapes configured upstream scope")
+
 // buildUpstreamRequest constructs the outbound request to the real
 // upstream, copying the inbound method/body/headers (minus hop-by-hop
 // headers), and substituting the real secret into header.
@@ -228,7 +239,21 @@ func buildUpstreamRequest(r *http.Request, upstreamBase, rest, header, secret st
 	if err != nil {
 		return nil, err
 	}
-	target := base.ResolveReference(&url.URL{Path: base.Path + restURL.Path, RawQuery: r.URL.RawQuery})
+
+	// Clean the concatenated path (resolving "." / ".." segments) and
+	// verify it remains within UpstreamBaseURL's own path prefix. Without
+	// this, a caller could use ".." segments in the incoming request path
+	// to reach sibling resources on the same upstream host outside the
+	// scope UpstreamBaseURL was configured to represent (e.g. a
+	// credential scoped to one repo/bucket/API version prefix), while
+	// still receiving the substituted real secret.
+	joined := base.Path + restURL.Path
+	cleaned := path.Clean("/" + joined)
+	if !pathWithinScope(base.Path, cleaned) {
+		return nil, errPathEscapesScope
+	}
+
+	target := base.ResolveReference(&url.URL{Path: cleaned, RawQuery: r.URL.RawQuery})
 
 	req, err := http.NewRequestWithContext(r.Context(), r.Method, target.String(), r.Body)
 	if err != nil {
@@ -244,6 +269,19 @@ func buildUpstreamRequest(r *http.Request, upstreamBase, rest, header, secret st
 	req.Host = base.Host
 
 	return req, nil
+}
+
+// pathWithinScope reports whether cleaned (an already path.Clean-ed,
+// absolute path) stays within basePath's own scope: either exactly equal
+// to it, or a genuine sub-path of it (respecting the "/" boundary, so
+// "/v1" does not wrongly match "/v1x"). An empty or "/" basePath imposes
+// no additional scoping beyond the upstream host itself.
+func pathWithinScope(basePath, cleaned string) bool {
+	if basePath == "" || basePath == "/" {
+		return true
+	}
+	trimmed := strings.TrimSuffix(basePath, "/")
+	return cleaned == trimmed || strings.HasPrefix(cleaned, trimmed+"/")
 }
 
 // relayResponse copies status, headers (minus hop-by-hop headers), and

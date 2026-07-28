@@ -218,8 +218,66 @@ func TestNewRejectsInvalidServices(t *testing.T) {
 	}
 }
 
-func TestFailsClosedWhenSecretEnvVarUnset(t *testing.T) {
-	// Deliberately do not set the env var.
+func TestRejectsPathTraversalOutsideUpstreamScope(t *testing.T) {
+	const realSecret = "sk-real-secret-value"
+	t.Setenv(testSecretEnvVar, realSecret)
+
+	upstreamCalled := false
+	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upstreamCalled = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer upstream.Close()
+
+	// UpstreamBaseURL scopes the credential to a specific path prefix,
+	// e.g. a repo- or bucket-scoped token.
+	svc := Service{
+		Name:             "github",
+		UpstreamBaseURL:  upstream.URL + "/repos/org/allowed-repo",
+		SecretEnvVar:     testSecretEnvVar,
+		PlaceholderToken: "placeholder-token",
+	}
+	p, err := New([]Service{svc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	p.client = upstream.Client()
+	if err := p.Start(); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = p.Stop(ctx)
+	}()
+
+	base := "http://" + p.Addr().String()
+
+	traversalPaths := []string{
+		"/github/../../../org/other-repo/secrets",
+		"/github/..%2f..%2f..%2forg/other-repo/secrets",
+	}
+	for _, path := range traversalPaths {
+		t.Run(path, func(t *testing.T) {
+			upstreamCalled = false
+			req, _ := http.NewRequest(http.MethodGet, base+path, nil)
+			req.Header.Set("Authorization", "placeholder-token")
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatalf("request failed: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusBadRequest {
+				t.Fatalf("expected 400 for path traversal attempt, got %d", resp.StatusCode)
+			}
+			if upstreamCalled {
+				t.Fatalf("upstream must not be called for a path-traversal attempt")
+			}
+		})
+	}
+}
+
+func TestFailsClosedWhenSecretEnvVarUnset(t *testing.T) { // Deliberately do not set the env var.
 	svc := Service{
 		Name:             "anthropic",
 		UpstreamBaseURL:  "https://example.invalid",
