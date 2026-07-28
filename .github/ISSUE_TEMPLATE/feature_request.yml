@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest an improvement or new capability
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that LocalBox doesn't support today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: false
+  - type: checkboxes
+    id: parity
+    attributes:
+      label: Cross-platform scope
+      description: Per CLAUDE.md Principle 4, features are expected to reach all three platforms eventually.
+      options:
+        - label: This is relevant to macOS
+        - label: This is relevant to Linux
+        - label: This is relevant to Windows

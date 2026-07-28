@@ -1,0 +1,10 @@
+# Default owner for everything not matched below.
+* @harishnarain
+
+# Security-sensitive paths per CLAUDE.md Principle 1 — kept explicit so that
+# as the team grows, review routing doesn't silently drop this requirement.
+/internal/drivers/ @harishnarain
+/internal/proxy/ @harishnarain
+/internal/snapshot/ @harishnarain
+/SECURITY.md @harishnarain
+/CLAUDE.md @harishnarain

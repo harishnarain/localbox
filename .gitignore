@@ -26,7 +26,23 @@ go.work.sum
 
 # env file
 .env
+.env.*
+*.local
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build output (root-anchored — cmd/localbox/ is source, not output)
+/bin/
+/dist/
+/localbox
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Claude Code local overrides (shared settings.json is committed)
+.claude/settings.local.json

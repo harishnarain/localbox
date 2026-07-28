@@ -1,0 +1,64 @@
+name: Spec
+description: Propose a feature/change to go through the spec-driven workflow (specify → plan → tasks → implement)
+title: "[spec] "
+labels: ["spec", "spec:draft"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / why
+      description: What's broken or missing, and why does it matter?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What's in scope for this spec.
+    validations:
+      required: true
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+      description: What's explicitly out of scope, to prevent scope creep.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will we know this is done? Be concrete and testable.
+    validations:
+      required: true
+  - type: checkboxes
+    id: platforms
+    attributes:
+      label: Cross-platform scope
+      description: Per CLAUDE.md Principle 4.
+      options:
+        - label: macOS
+        - label: Linux
+        - label: Windows
+        - label: Not platform-specific
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Touches the sandbox boundary?
+      description: internal/drivers/, internal/proxy/, or internal/snapshot/ — triggers CLAUDE.md Principle 1 review.
+      options:
+        - label: "Yes — this touches the sandbox boundary"
+  - type: textarea
+    id: plan
+    attributes:
+      label: Plan
+      description: Filled in by `/plan` — leave as-is when opening the spec.
+      value: "_Not yet planned — run `/plan` on this issue._"
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Filled in by `/tasks` — leave as-is when opening the spec.
+      value: "_Not yet broken down — run `/tasks` on this issue._"
+    validations:
+      required: true
