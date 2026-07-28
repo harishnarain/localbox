@@ -14,6 +14,16 @@ func main() {
 		return
 	}
 
+	if len(os.Args) > 1 && os.Args[1] == "status" {
+		line, err := runStatus()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "localbox: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(line)
+		return
+	}
+
 	fmt.Fprintln(os.Stderr, "localbox: not yet implemented — see README.md and CLAUDE.md")
 	os.Exit(1)
 }

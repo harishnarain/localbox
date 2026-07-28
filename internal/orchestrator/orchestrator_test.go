@@ -63,6 +63,15 @@ func TestNewForCurrentPlatform(t *testing.T) {
 	}
 }
 
+func TestOrchestratorDriver(t *testing.T) {
+	fd := &fakeDriver{name: "fake"}
+	o := New(fd)
+
+	if o.Driver() != fd {
+		t.Fatalf("Driver() = %v, want %v", o.Driver(), fd)
+	}
+}
+
 func TestOrchestratorBootPassThrough(t *testing.T) {
 	fd := &fakeDriver{name: "fake"}
 	o := New(fd)
